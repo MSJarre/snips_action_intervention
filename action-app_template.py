@@ -32,13 +32,20 @@ class Template(object):
         self.start_blocking()
         
     # --> Sub callback function, one per intent
-    def intent_1_callback(self, hermes, intent_message):
+    def save_intervention(self, hermes, intent_message):
         # terminate the session first if not continue
         hermes.publish_end_session(intent_message.session_id, "")
         
         # action code goes here...
-        print '[Received] intent: {}'.format(intent_message.intent.intent_name)
-
+        for (slot_value, slot) in intent_message.slots.items():
+	    if slot_value == "procedure":
+	        self.procedure = slot.first().value.encode("utf8")
+	    if slot_value == "parcelle":
+	        self.parcelle = slot.first().value.encode("utf8")
+	    if slot_value == "worker":
+	        self.worker = slot.first().value.encode("utf8")
+	    if slot_value == "tool":
+	        self.tool = slot.first().value.encode("utf8")
         # if need to speak the execution result by tts
         hermes.publish_start_session_notification(intent_message.site_id, "Action1 has been done", "")
 
@@ -57,10 +64,11 @@ class Template(object):
     # --> Master callback function, triggered everytime an intent is recognized
     def master_intent_callback(self,hermes, intent_message):
         coming_intent = intent_message.intent.intent_name
-        if coming_intent == 'intent_1':
-            self.intent_1_callback(hermes, intent_message)
-        if coming_intent == 'intent_2':
-            self.intent_2_callback(hermes, intent_message)
+	_LOGGER.debug(u"[master_intent_callback] - IntentAAAAAAAAAAAAAAAAA: {}".format(coming_intent))
+        if coming_intent == 'MSJarre:Save_intervention':
+            self.save_intervention(hermes, intent_message)
+        if coming_intent == 'MSJarre:save_incident':
+            self.save_incident(hermes, intent_message)
 
         # more callback and if condition goes here...
 
